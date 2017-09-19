@@ -1,24 +1,16 @@
 package slack
 
 import akka.actor._
+import slack.api.SlackApiClient
 import slack.rtm.SlackRtmClient
 
-object Main extends App {
-  val token = "..."
-  implicit val system = ActorSystem("slack")
-  implicit val ec = system.dispatcher
+object SlackBot {
+  implicit val system: ActorSystem = ActorSystem("slack")
+  val token = sys.env("SLACK_BOT_TOKEN")
+  val apiClient = SlackApiClient(token)
+  val rtmClient = SlackRtmClient(token)
 
-  val client = SlackRtmClient(token)
-  val selfId = client.state.self.id
-
-  client.onEvent { event =>
-    system.log.info("Received new event: {}", event)
-    /*
-    val mentionedIds = SlackUtil.extractMentionedIds(message.text)
-
-    if (mentionedIds.contains(selfId)) {
-      client.sendMessage(message.channel, s"<@${message.user}>: Hey!")
-    }
-    */
+  def main(args: Array[String]): Unit = {
+    rtmClient.onEvent(println)
   }
 }

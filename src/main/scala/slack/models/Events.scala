@@ -19,6 +19,7 @@ case class Message (
   thread_ts: Option[String]
 ) extends SlackEvent
 
+
 case class EditMessage (
   user: String,
   text: String,
@@ -46,6 +47,29 @@ case class BotMessage (
   text: String,
   bot_id: String,
   username: Option[String]
+) extends SlackEvent
+
+case class ThreadReply (
+  user: String,
+  ts: String
+) extends SlackEvent
+
+case class ThreadMessage (
+  user: String,
+  text: String,
+  thread_ts: Option[String],
+  reply_count: Int,
+  replies: Array[ThreadReply],
+  unread_count: Int,
+  ts: String
+) extends SlackEvent
+
+case class MessageReplied (
+  ts: String,
+  event_ts: String,
+  channel: String,
+  hidden: Boolean,
+  message: ThreadMessage
 ) extends SlackEvent
 
 // TODO: Message Sub-types
