@@ -24,8 +24,7 @@ object BuildSettings {
     },
     publishArtifact in Test := false,
     pomIncludeRepository := { _ => false },
-    pomExtra := (
-      <url>https://github.com/gilbertw1/slack-scala-client</url>
+    pomExtra := <url>https://github.com/gilbertw1/slack-scala-client</url>
       <licenses>
         <license>
           <name>MIT</name>
@@ -43,7 +42,7 @@ object BuildSettings {
           <name>Bryan Gilbert</name>
           <url>http://bryangilbert.com</url>
         </developer>
-      </developers>)
+      </developers>
   )
 }
 
@@ -64,7 +63,7 @@ object Dependencies {
   val miscDependencies = Seq(playJson, scalaAsync)
   val testDependencies = Seq(scalatest)
 
-  val allDependencies = akkaDependencies ++ miscDependencies ++ testDependencies
+  val allDependencies = akkaDependencies ++ miscDependencies
 }
 
 object SlackScalaClient extends Build {
