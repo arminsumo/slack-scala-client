@@ -42,9 +42,9 @@ package object models {
   }
   implicit val reactionItemWrites = new Writes[ReactionItem] {
     override def writes(item: ReactionItem): JsValue = item match {
-      case i:ReactionItemMessage => Json.toJson(i)
-      case i:ReactionItemFile => Json.toJson(i)
-      case i:ReactionItemFileComment => Json.toJson(i)
+      case i: ReactionItemMessage => Json.toJson(i)
+      case i: ReactionItemFile => Json.toJson(i)
+      case i: ReactionItemFileComment => Json.toJson(i)
     }
   }
 
@@ -130,6 +130,19 @@ package object models {
   implicit val messageSubtypeChannelNameMessageFmt = Json.format[ChannelNameMessage]
   implicit val messageSubtypeFileShareMessageFmt = Json.format[FileShareMessage]
   implicit val messageSubtypeHandledSubtypeFmt = Json.format[UnhandledSubtype]
+
+  implicit val messageWrites: Writes[Message] = {
+    import play.api.libs.functional.syntax._
+    (
+      (JsPath \ "ts").write[String] and
+      (JsPath \ "channel").write[String] and
+      (JsPath \ "user").write[String] and
+      (JsPath \ "text").write[String] and
+      (JsPath \ "is_starred").write[Option[Boolean]] and
+      (JsPath \ "thread_ts").write[Option[String]]
+    ) ((msg: Message) => (msg.ts, msg.channel, msg.user, msg.text, msg.is_starred, msg.thread_ts))
+  }
+
   implicit val messageWithSubtypeWrites: Writes[MessageWithSubtype] = {
     import play.api.libs.functional.syntax._
     (
@@ -221,6 +234,21 @@ package object models {
         case e: AppsInstalled => Json.toJson(e)
         case e: DesktopNotification => Json.toJson(e)
       }
+    }
+  }
+
+  implicit val messageReads = new Reads[Message] {
+    override def reads(jsValue: JsValue): JsResult[Message] = {
+      JsSuccess(
+        Message(
+          (jsValue \ "ts").as[String],
+          (jsValue \ "channel").as[String],
+          (jsValue \ "user").as[String],
+          (jsValue \ "text").as[String],
+          (jsValue \ "is_starred").asOpt[Boolean],
+          (jsValue \ "thread_ts").asOpt[String]
+        )
+      )
     }
   }
 

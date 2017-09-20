@@ -189,6 +189,11 @@ class SlackApiClient(token: String) {
     extract[Boolean](res, "ok")
   }
 
+  def channelReplies(channelId: String, threadTs: String)(implicit  system: ActorSystem): Future[Seq[MessageWithSubtype]] = {
+    val res = makeApiMethodRequest("channels.replies", "channel" -> channelId, "thread_ts" -> threadTs)
+    extract[Seq[MessageWithSubtype]](res, "messages")
+  }
+
 
   /**************************/
   /****  Chat Endpoints  ****/
@@ -204,7 +209,8 @@ class SlackApiClient(token: String) {
       parse: Option[String] = None, linkNames: Option[String] = None, attachments: Option[Seq[Attachment]] = None,
       unfurlLinks: Option[Boolean] = None, unfurlMedia: Option[Boolean] = None, iconUrl: Option[String] = None,
       iconEmoji: Option[String] = None, replaceOriginal: Option[Boolean]= None,
-      deleteOriginal: Option[Boolean] = None)(implicit system: ActorSystem): Future[String] = {
+      deleteOriginal: Option[Boolean] = None, threadTs: Option[String] = None,
+      replyBroadcast: Option[Boolean] = None)(implicit system: ActorSystem): Future[String] = {
     val res = makeApiMethodRequest (
       "chat.postMessage",
       "channel" -> channelId,
@@ -219,7 +225,9 @@ class SlackApiClient(token: String) {
       "icon_url" -> iconUrl,
       "icon_emoji" -> iconEmoji,
       "replace_original" -> replaceOriginal,
-      "delete_original" -> deleteOriginal)
+      "delete_original" -> deleteOriginal,
+      "thread_ts" -> threadTs,
+      "reply_broadcast" -> replyBroadcast)
     extract[String](res, "ts")
   }
 
@@ -628,7 +636,7 @@ case class ApiError(code: String) extends Exception(code)
 
 case class HistoryChunk (
   latest: Option[String],
-  messages: Seq[JsValue],
+  messages: JsArray,
   has_more: Boolean
 )
 

@@ -100,6 +100,10 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds
     resolve(client.unarchiveChannel(channelId))
   }
 
+  def channelReplies(channelId: String, threadTs: String)(implicit  system: ActorSystem): Seq[MessageWithSubtype] = {
+    resolve(client.channelReplies(channelId, threadTs))
+  }
+
 
   /**************************/
   /****  Chat Endpoints  ****/
