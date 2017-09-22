@@ -54,22 +54,41 @@ case class ThreadReply (
   ts: String
 ) extends SlackEvent
 
-case class ThreadMessage (
+case class UserThreadMessage (
   user: String,
   text: String,
   thread_ts: Option[String],
   reply_count: Int,
   replies: Array[ThreadReply],
-  unread_count: Int,
+  unread_count: Option[Int],
   ts: String
 ) extends SlackEvent
 
-case class MessageReplied (
+case class UserMessageReplied (
   ts: String,
   event_ts: String,
   channel: String,
   hidden: Boolean,
-  message: ThreadMessage
+  message: UserThreadMessage
+) extends SlackEvent
+
+case class BotThreadMessage (
+  text: String,
+  username: Option[String],
+  bot_id: String,
+  thread_ts: Option[String],
+  reply_count: Int,
+  replies: Array[ThreadReply],
+  unread_count: Option[Int],
+  ts: String
+) extends SlackEvent
+
+case class BotMessageReplied (
+  ts: String,
+  event_ts: String,
+  channel: String,
+  hidden: Boolean,
+  message: BotThreadMessage
 ) extends SlackEvent
 
 // TODO: Message Sub-types
