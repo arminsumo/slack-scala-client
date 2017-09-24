@@ -1,15 +1,18 @@
 package slack.api
 
 import java.io.File
-import scala.concurrent.duration._
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
+import scala.concurrent.duration._
 import play.api.libs.json._
 import slack.models._
 import akka.actor.ActorSystem
+import akka.http.javadsl.model.ContentTypes
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ Uri, HttpRequest, Multipart, HttpEntity, MessageEntity, MediaTypes, HttpMethods }
+import akka.http.scaladsl.model._
 
 import scala.concurrent.Future
 
@@ -66,7 +69,11 @@ object SlackApiClient {
   }
 
   private def addQueryParams(request: HttpRequest, queryParams: Seq[(String,String)]): HttpRequest = {
-    request.withUri(request.uri.withQuery(Uri.Query((request.uri.query() ++ queryParams): _*)))
+    val r = request.uri.query() ++ queryParams
+    val query = r.map(pair => pair._1 + "=" + URLEncoder.encode(pair._2, "UTF-8")).mkString("&")
+    //val query = Uri.Query(Some(q), StandardCharsets.UTF_8, Uri.ParsingMode.Strict)
+
+    request.withUri(request.uri.withRawQueryString(query))
   }
 
   private def cleanParams(params: Seq[(String,Any)]): Seq[(String,String)] = {
@@ -89,7 +96,8 @@ import SlackApiClient._
 class SlackApiClient(token: String) {
 
   private val apiBaseWithTokenRequest = apiBaseRequest.withUri(apiBaseRequest.uri.withQuery(
-                                                          Uri.Query((apiBaseRequest.uri.query() :+ ("token" -> token)): _*)))
+                                                          Uri.Query(apiBaseRequest.uri.query() :+ ("token" -> token): _*)))
+
 
 
   /**************************/
@@ -211,7 +219,7 @@ class SlackApiClient(token: String) {
       iconEmoji: Option[String] = None, replaceOriginal: Option[Boolean]= None,
       deleteOriginal: Option[Boolean] = None, threadTs: Option[String] = None,
       replyBroadcast: Option[Boolean] = None)(implicit system: ActorSystem): Future[String] = {
-    val res = makeApiMethodRequest (
+    val res = makeApiMethodRequest(
       "chat.postMessage",
       "channel" -> channelId,
       "text" -> text,
@@ -616,10 +624,21 @@ class SlackApiClient(token: String) {
   /****  Private Functions  ****/
   /*****************************/
 
+  private def addToken(params: Seq[(String, Any)]): Seq[(String, Any)] = {
+    params :+ (("token", token))
+  }
+
   private def makeApiMethodRequest(apiMethod: String, queryParams: (String,Any)*)(implicit system: ActorSystem): Future[JsValue] = {
     val req = addSegment(apiBaseWithTokenRequest, apiMethod)
     makeApiRequest(addQueryParams(req, cleanParams(queryParams)))
   }
+
+  private def makeApiPostMethodRequest(apiMethod: String, queryParams: (String,Any)*)(implicit system: ActorSystem): Future[JsValue] = {
+    val entity = FormData(cleanParams(addToken(queryParams)): _*).toEntity
+    val request = apiBaseRequest.withMethod(HttpMethods.POST).withEntity(entity)
+    makeApiRequest(request)
+  }
+
 
   private def createEntity(file: File): MessageEntity = {
     Multipart.FormData(

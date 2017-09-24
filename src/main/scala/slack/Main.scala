@@ -1,6 +1,10 @@
 package slack
 
+import java.net.URLEncoder
+import java.nio.charset.Charset
+
 import akka.actor._
+import akka.http.scaladsl.model.Uri
 import play.api.libs.json.{Format, JsValue, Json}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
 import slack.rtm.SlackRtmClient
@@ -19,7 +23,14 @@ object SlackBot {
   }
 
   def main(args: Array[String]): Unit = {
-    rtmClient.onEvent(println)
+//    println(URLEncoder.encode("hello?", "UTF-8"))
+  //  println()
+    //rtmClient.onEvent(println)
+    //apiClient.postChatMessage("general", "hello?")
+//
+    for (i <- 1 to 100) {
+      apiClient.postChatMessage("general", "hello?")
+    }
   }
 }
 
